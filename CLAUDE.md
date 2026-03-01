@@ -60,6 +60,8 @@ lib/
 
 ## Workflow Requirements
 
+- **Branching**: develop each feature or fix in its own dedicated branch.
+- **Commits**: use conventional commits with scopes and gitmojis (e.g., `feat(editor): ✨ add line numbers`). Commits are an integral part of the implementation process.
 - **Tests**: every new feature must have corresponding tests; when changing existing behaviour, update the affected tests before finishing. Run `flutter test` to verify.
 - **Verification**: after implementing a feature, track each change made and manually verify each one works before considering the task done. Use `flutter analyze` + `flutter build macos --debug` as a minimum gate.
 

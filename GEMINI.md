@@ -49,6 +49,8 @@ Ensure you have the Flutter SDK installed and configured for macOS development.
 - **Analyze code:** `flutter analyze`
 
 ## Workflow Requirements
+- **Branching**: Develop each feature or fix in its own dedicated branch.
+- **Commits**: Use conventional commits with scopes and gitmojis (e.g., `feat(editor): ✨ add line numbers`). Commits are an integral part of the implementation process.
 - **Tests**: Every new feature must have corresponding tests. Update affected tests when changing existing behavior. Run `flutter test` to verify.
 - **Verification**: Track each change and manually verify. Use `flutter analyze` + `flutter build macos --debug` as a minimum gate.
 
