@@ -1,4 +1,5 @@
 import '../models/note.dart';
+import '../services/grammar_service.dart';
 
 sealed class AppEvent {}
 
@@ -34,6 +35,18 @@ final class AppThemeToggled extends AppEvent {}
 
 /// User toggled academic writing mode.
 final class AppAcademicModeToggled extends AppEvent {}
+
+/// User changed the spell check language.
+final class AppLanguageChanged extends AppEvent {
+  final String language;
+  AppLanguageChanged(this.language);
+}
+
+/// Internal event fired when grammar check results are ready.
+final class AppGrammarMatchesUpdated extends AppEvent {
+  final List<GrammarMatch> matches;
+  AppGrammarMatchesUpdated(this.matches);
+}
 
 /// Internal event fired on startup to restore the last session.
 final class AppSessionLoadRequested extends AppEvent {}
