@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../services/grammar_service.dart';
 import '../theme/writer_colors.dart';
 
 class MarkdownEditingController extends TextEditingController {
+  List<GrammarMatch> grammarMatches = [];
+
+  /// Call after updating [grammarMatches] to trigger a repaint of the
+  /// syntax-highlighted text span.
+  void invalidate() => notifyListeners();
+
   // Regex patterns — order matters: fenced code before inline code,
   // bold+italic before bold, bold before italic.
   static final List<(RegExp, TextStyle? Function(WriterColors))>
@@ -82,6 +89,7 @@ class MarkdownEditingController extends TextEditingController {
     final tokens = <_Token>[];
     _collectBlockTokens(text, tokens, colors);
     _collectInlineTokens(text, tokens, colors);
+    _collectGrammarTokens(text, tokens, colors);
 
     tokens.sort((a, b) {
       final c = a.start.compareTo(b.start);
@@ -89,6 +97,29 @@ class MarkdownEditingController extends TextEditingController {
     });
 
     return TextSpan(style: base, children: _buildSpans(text, tokens, base));
+  }
+
+  void _collectGrammarTokens(
+      String text, List<_Token> out, WriterColors colors) {
+    for (final match in grammarMatches) {
+      if (match.offset < 0 || match.offset + match.length > text.length) {
+        continue;
+      }
+
+      final color = match.ruleIssueType == 'misspelling'
+          ? Colors.red.withValues(alpha: 0.8)
+          : Colors.orange.withValues(alpha: 0.8);
+
+      out.add(_Token(
+        match.offset,
+        match.offset + match.length,
+        TextStyle(
+          decoration: TextDecoration.underline,
+          decorationStyle: TextDecorationStyle.wavy,
+          decorationColor: color,
+        ),
+      ));
+    }
   }
 
   void _collectBlockTokens(
