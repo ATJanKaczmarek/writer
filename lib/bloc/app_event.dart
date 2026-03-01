@@ -34,3 +34,6 @@ final class AppThemeToggled extends AppEvent {}
 
 /// User toggled academic writing mode.
 final class AppAcademicModeToggled extends AppEvent {}
+
+/// Internal event fired on startup to restore the last session.
+final class AppSessionLoadRequested extends AppEvent {}
