@@ -15,6 +15,7 @@ class AppState extends Equatable {
   final bool isPreviewVisible;
   final bool isExplorerCollapsed;
   final bool isDarkMode;
+  final bool isAcademicMode;
 
   const AppState({
     this.folder,
@@ -24,6 +25,7 @@ class AppState extends Equatable {
     this.isPreviewVisible = false,
     this.isExplorerCollapsed = false,
     this.isDarkMode = true,
+    this.isAcademicMode = false,
   });
 
   AppState copyWith({
@@ -34,6 +36,7 @@ class AppState extends Equatable {
     bool? isPreviewVisible,
     bool? isExplorerCollapsed,
     bool? isDarkMode,
+    bool? isAcademicMode,
   }) {
     return AppState(
       folder: folder ?? this.folder,
@@ -44,6 +47,7 @@ class AppState extends Equatable {
       isPreviewVisible: isPreviewVisible ?? this.isPreviewVisible,
       isExplorerCollapsed: isExplorerCollapsed ?? this.isExplorerCollapsed,
       isDarkMode: isDarkMode ?? this.isDarkMode,
+      isAcademicMode: isAcademicMode ?? this.isAcademicMode,
     );
   }
 
@@ -56,5 +60,6 @@ class AppState extends Equatable {
         isPreviewVisible,
         isExplorerCollapsed,
         isDarkMode,
+        isAcademicMode,
       ];
 }

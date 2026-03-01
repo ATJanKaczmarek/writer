@@ -92,6 +92,19 @@ class _Toolbar extends StatelessWidget {
               ),
             ),
           ),
+          // Academic mode toggle
+          ShadTooltip(
+            builder: (_) => const Text('Academic mode'),
+            child: ShadIconButton.ghost(
+              onPressed: () =>
+                  context.read<AppBloc>().add(AppAcademicModeToggled()),
+              icon: Icon(
+                LucideIcons.bookOpen,
+                size: 14,
+                color: state.isAcademicMode ? c.heading : c.textMuted,
+              ),
+            ),
+          ),
           // Preview toggle
           ShadTooltip(
             builder: (_) => Text(

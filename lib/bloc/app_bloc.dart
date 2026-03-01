@@ -20,6 +20,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<AppExplorerToggled>(_onExplorerToggled);
     on<AppNotesRefreshRequested>(_onNotesRefreshRequested);
     on<AppThemeToggled>(_onThemeToggled);
+    on<AppAcademicModeToggled>(_onAcademicModeToggled);
   }
 
   // ---------------------------------------------------------------------------
@@ -93,6 +94,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   void _onThemeToggled(AppThemeToggled event, Emitter<AppState> emit) {
     emit(state.copyWith(isDarkMode: !state.isDarkMode));
+  }
+
+  void _onAcademicModeToggled(
+    AppAcademicModeToggled event,
+    Emitter<AppState> emit,
+  ) {
+    emit(state.copyWith(isAcademicMode: !state.isAcademicMode));
   }
 
   Future<void> _onNotesRefreshRequested(

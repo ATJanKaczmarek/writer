@@ -4,6 +4,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../bloc/app_bloc.dart';
 import '../theme/writer_colors.dart';
+import '../utils/toc_generator.dart';
 
 class PreviewPanel extends StatelessWidget {
   const PreviewPanel({super.key});
@@ -12,12 +13,17 @@ class PreviewPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final content =
         context.select<AppBloc, String>((b) => b.state.content);
+    final isAcademicMode =
+        context.select<AppBloc, bool>((b) => b.state.isAcademicMode);
     final c = WriterColors.of(context);
+
+    final displayContent =
+        isAcademicMode ? generateToc(content) + content : content;
 
     return Container(
       color: c.appBg,
       child: Markdown(
-        data: content,
+        data: displayContent,
         padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
         styleSheet: _buildStyleSheet(c),
         selectable: true,

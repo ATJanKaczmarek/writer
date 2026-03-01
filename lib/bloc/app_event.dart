@@ -31,3 +31,6 @@ final class AppNotesRefreshRequested extends AppEvent {}
 
 /// User toggled dark/light mode.
 final class AppThemeToggled extends AppEvent {}
+
+/// User toggled academic writing mode.
+final class AppAcademicModeToggled extends AppEvent {}
