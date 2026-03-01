@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/note.dart';
 import 'app_event.dart';
@@ -12,6 +13,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   Timer? _saveTimer;
 
   AppBloc() : super(const AppState()) {
+    on<AppSessionLoadRequested>(_onSessionLoadRequested);
     on<AppFolderOpenRequested>(_onFolderOpenRequested);
     on<AppNoteOpened>(_onNoteOpened);
     on<AppContentChanged>(_onContentChanged);
@@ -21,11 +23,45 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<AppNotesRefreshRequested>(_onNotesRefreshRequested);
     on<AppThemeToggled>(_onThemeToggled);
     on<AppAcademicModeToggled>(_onAcademicModeToggled);
+    add(AppSessionLoadRequested());
   }
 
   // ---------------------------------------------------------------------------
   // Handlers
   // ---------------------------------------------------------------------------
+
+  Future<void> _onSessionLoadRequested(
+    AppSessionLoadRequested event,
+    Emitter<AppState> emit,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    var next = AppState(
+      isDarkMode: prefs.getBool('isDarkMode') ?? true,
+      isPreviewVisible: prefs.getBool('isPreviewVisible') ?? false,
+      isExplorerCollapsed: prefs.getBool('isExplorerCollapsed') ?? false,
+      isAcademicMode: prefs.getBool('isAcademicMode') ?? false,
+    );
+
+    final folderPath = prefs.getString('folderPath') ?? '';
+    if (folderPath.isNotEmpty) {
+      final dir = Directory(folderPath);
+      if (await dir.exists()) {
+        final notes = await _listNotes(dir);
+        next = next.copyWith(folder: dir, notes: notes);
+
+        final notePath = prefs.getString('notePath') ?? '';
+        final note =
+            notes.where((n) => n.file.path == notePath).firstOrNull;
+        if (note != null) {
+          final content = await note.file.readAsString();
+          next = next.copyWith(activeNote: note, content: content);
+        }
+      }
+    }
+
+    emit(next);
+  }
 
   Future<void> _onFolderOpenRequested(
     AppFolderOpenRequested event,
@@ -36,6 +72,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final folder = Directory(path);
     emit(state.copyWith(folder: folder, activeNote: null, content: ''));
     await _loadNotes(folder, emit);
+    _persistSession().then((_) {});
   }
 
   Future<void> _onNoteOpened(
@@ -49,6 +86,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
     final content = await event.note.file.readAsString();
     emit(state.copyWith(activeNote: event.note, content: content));
+    _persistSession().then((_) {});
   }
 
   void _onContentChanged(
@@ -83,6 +121,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) {
     emit(state.copyWith(isPreviewVisible: !state.isPreviewVisible));
+    _persistSession().then((_) {});
   }
 
   void _onExplorerToggled(
@@ -90,10 +129,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) {
     emit(state.copyWith(isExplorerCollapsed: !state.isExplorerCollapsed));
+    _persistSession().then((_) {});
   }
 
   void _onThemeToggled(AppThemeToggled event, Emitter<AppState> emit) {
     emit(state.copyWith(isDarkMode: !state.isDarkMode));
+    _persistSession().then((_) {});
   }
 
   void _onAcademicModeToggled(
@@ -101,6 +142,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) {
     emit(state.copyWith(isAcademicMode: !state.isAcademicMode));
+    _persistSession().then((_) {});
   }
 
   Future<void> _onNotesRefreshRequested(
@@ -115,7 +157,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  Future<void> _loadNotes(Directory folder, Emitter<AppState> emit) async {
+  /// Lists all `.md` files in [folder], sorted by last modified (newest first).
+  Future<List<Note>> _listNotes(Directory folder) async {
     final entities = folder.listSync();
     final files = entities
         .whereType<File>()
@@ -127,7 +170,22 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       notes.add(Note(file: file, lastModified: stat.modified));
     }
     notes.sort((a, b) => b.lastModified.compareTo(a.lastModified));
-    emit(state.copyWith(notes: notes));
+    return notes;
+  }
+
+  Future<void> _loadNotes(Directory folder, Emitter<AppState> emit) async {
+    emit(state.copyWith(notes: await _listNotes(folder)));
+  }
+
+  /// Persists UI preferences and open file/folder to SharedPreferences.
+  Future<void> _persistSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', state.isDarkMode);
+    await prefs.setBool('isPreviewVisible', state.isPreviewVisible);
+    await prefs.setBool('isExplorerCollapsed', state.isExplorerCollapsed);
+    await prefs.setBool('isAcademicMode', state.isAcademicMode);
+    await prefs.setString('folderPath', state.folder?.path ?? '');
+    await prefs.setString('notePath', state.activeNote?.file.path ?? '');
   }
 
   /// Called by the debounce timer — runs outside an Emitter context so it
